@@ -8,6 +8,15 @@ from faker import Faker
 
 LOGGER = logging.getLogger(__name__)
 
+@pytest.fixture
+def client():
+    app.config['TESTING'] = True
+    with app.test_client() as client:
+        with app.app_context():
+            db.create_all()
+            yield client
+            db.session.remove()
+            db.drop_all()
 
 class TestAuthor:
     '''Class Author in models.py'''
@@ -23,7 +32,7 @@ class TestAuthor:
             with pytest.raises(ValueError):
                 author2 = Author(name = '', phone_number = '1231144321')
 
-    def test_requires_unique_name(self):
+    def test_requires_unique_name(self, client):
         '''requires each record to have a unique name.'''
         
         with app.app_context():
